@@ -1,0 +1,6 @@
+[package]
+name = "laplace"
+version = "0.1.0"
+authors = ["Dominick Allen <dja5371@psu.edu>"]
+edition = "2018"
+
