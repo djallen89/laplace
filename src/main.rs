@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::path::Path;
 use std::fs::{File, create_dir};
 use std::io::Write;
@@ -6,15 +8,18 @@ use exact::exact;
 use jacobi::jacobi;
 use gauss_seidel::gauss_seidel;
 use over_relax::over_relax;
+use slor::slor;
 
 mod exact;
 mod jacobi;
 mod gauss_seidel;
 mod over_relax;
+mod slor;
 
 pub const L: f64 = 1.0;
 pub const W: f64 = 1.0;
 pub const RES_MAX: f64 = 1.0e-5;
+pub const OMEGA: f64 = 1.8;
 
 pub fn get_idx(row: usize, column: usize, stride: usize) -> usize {
     row * stride + column
@@ -28,11 +33,9 @@ pub fn create_phi_matrix(rows: usize, columns: usize) -> Vec<f64> {
         }
     }
 
-    phi_matrix.push(0.0);
-    for _column in 1 .. columns - 1 {
+    for _column in 0 .. columns {
         phi_matrix.push(1.0);
     }
-    phi_matrix.push(0.0);
     
     phi_matrix
 }
@@ -47,7 +50,7 @@ pub fn residual(u_ij: f64, u_ip1j: f64, u_im1j: f64, u_ijp1: f64, u_ijm1: f64,
 
     lhterm + rhterm - fij
 }
-
+ 
 pub fn update(u_ip1j: f64, u_im1j: f64, u_ijp1: f64, u_ijm1: f64,
           dx_sq: f64, dy_sq: f64) -> f64 {
 
@@ -60,12 +63,16 @@ pub fn update(u_ip1j: f64, u_im1j: f64, u_ijp1: f64, u_ijm1: f64,
 fn main() {
     setup_output_dir();
     do_exact();
+    /*
     do_func(50, 50, &jacobi, "jacobi");
     do_func(100, 100, &jacobi, "jacobi");
     do_func(50, 50, &gauss_seidel, "gauss_seidel");
     do_func(100, 100, &gauss_seidel, "gauss_seidel");
     do_func(50, 50, &over_relax, "over_relaxation");
     do_func(100, 100, &over_relax, "over_relaxation");
+     */
+    //do_func(50, 50, &slor, "slor");
+    do_func(100, 100, &slor, "slor");
 }
 
 fn do_exact() {

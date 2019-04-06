@@ -2,8 +2,6 @@ use std::mem;
 use super::{get_idx, residual, update};
 use super::{RES_MAX, OMEGA};
 
-pub const OMEGA: f64 = 1.8;
-
 pub fn over_relax(matrix: &mut Vec<f64>, rows: usize, columns: usize,
                   dx: f64, dy: f64) -> Vec<f64> {
 
@@ -35,7 +33,7 @@ pub fn over_relax(matrix: &mut Vec<f64>, rows: usize, columns: usize,
                 let u_ijm1_np1 = mat_np1[get_idx(row - 1, column, stride)];
 
                 let res_n = residual(u_ij_n, u_ip1j_n, u_im1j_n, u_ijp1_n, u_ijm1_n,
-                                   dx_sq, dy_sq, 0.0);
+                                     dx_sq, dy_sq, 0.0);
 
                 if res_n.abs() >= res_max {
                     res_max = res_n.abs();
