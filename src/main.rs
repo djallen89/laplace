@@ -65,10 +65,10 @@ pub fn update(u_ip1j: f64, u_im1j: f64, u_ijp1: f64, u_ijm1: f64,
 fn main() {
     setup_output_dir();
     do_exact();
-    do_func(50, 50, &_jacobi, "jacobi");
-    do_func(100, 100, &_jacobi, "jacobi");
-    //do_method(50, 50, jacobi, "jacobi");
-    //do_method(100, 100, jacobi, "jacobi");
+    //do_func(50, 50, &_jacobi, "jacobi");
+    //do_func(100, 100, &_jacobi, "jacobi");
+    do_method(50, 50, jacobi, "jacobi");
+    do_method(100, 100, jacobi, "jacobi");
     do_func(50, 50, &gauss_seidel, "gauss_seidel");
     do_func(100, 100, &gauss_seidel, "gauss_seidel");
     do_func(50, 50, &over_relax, "over_relaxation");
