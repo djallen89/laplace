@@ -28,7 +28,7 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
     let r1 = 0.0;
 
     let pj = inv_dy_sq;
-    let qj = -2.0 / (inv_dx_sq + inv_dy_sq);
+    let qj = -2.0 * (inv_dx_sq + inv_dy_sq);
     let rj = inv_dy_sq;
 
     let mut r_prime = Vec::with_capacity(rows);
