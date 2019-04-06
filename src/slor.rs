@@ -21,7 +21,7 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
      * matrix. Additionally, p, q and r will also be the same for
      * every iteration. In fact, not only will they be the same for
      * every iteration, but their first elements are equal to their
-     * last, and all of their middle elements are the same!
+     * last, and all of their middle elements are the same.
      */
 
     let q1 = 1.0;
@@ -67,17 +67,15 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
     let mut mat_np1 = &mut matrix_np1;
 
     let mut even_swap_count = true;
+    let mut s_prime: Vec<f64> = (0 .. rows).map(|_| 0.0 as f64).collect();
+    s_prime[0] = bc1;
+    s_prime[rows - 1] = bc2;
 
     loop {
         let mut res_max = 0.0f64;
-        let mut u_squiggle: Vec<f64> = (0 .. rows).map(|_| 0.0 as f64).collect();
-        u_squiggle[0] = bc1;
-        u_squiggle[rows - 1] = bc2;
-
-        let mut s_prime: Vec<f64> = (0 .. rows).map(|_| 0.0 as f64).collect();
-        //s_prime.push(bc1 / q1);
-        s_prime[0] = bc1;
-        s_prime[rows - 1] = bc2;
+        //let mut u_squiggle: Vec<f64> = (0 .. rows).map(|_| 0.0 as f64).collect();
+        //u_squiggle[0] = bc1;
+        //u_squiggle[rows - 1] = bc2;
 
         for i in 1 .. columns - 1 {
             /* Calculate s_prime and calculate maximum residual */
@@ -98,38 +96,35 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
                     res_max = res_n.abs();
                 }
                 
-                let s_j = -1.0 * inv_dx_sq * (u_ip1j + u_im1j_np1);
+                let sj = -1.0 * inv_dx_sq * (u_ip1j + u_im1j_np1);
 
-                let numerator = s_j - pj * s_prime[j - 1];
+                let numerator = sj - pj * s_prime[j - 1];
                 let denominator = qj - pj * r_prime[j - 1];
                 s_prime[j] = (numerator / denominator);
             }
 
             let mut j = rows - 2;
-            loop {
-                let u_squiggle_j = s_prime[j] - r_prime[j] * u_squiggle[j + 1];
+            let u_ij_squiggle = s_prime[j] - r_prime[j] * bc2;
+            let u_ij_n = mat_n[get_idx(i, j, stride_trans)];
+            let u_ij_np1 = u_ij_n + OMEGA * (u_ij_squiggle - u_ij_n);
+            mat_np1[get_idx(i, j, stride_trans)] = u_ij_np1;
 
-                u_squiggle[j] = u_squiggle_j;
-                j -= 1;
-                if j == 0 {
-                    break
-                }
-            }
-
-            for j in 1 .. rows - 1 {
+            let mut u_ijp1_squiggle = u_ij_squiggle;
+            j -= 1;
+            
+            while j > 0 {
+                let u_ij_squiggle = s_prime[j] - r_prime[j] * u_ijp1_squiggle;
                 let u_ij_n = mat_n[get_idx(i, j, stride_trans)];
-                let u_ij_squiggle = u_squiggle[j];
                 let u_ij_np1 = u_ij_n + OMEGA * (u_ij_squiggle - u_ij_n);
-
                 mat_np1[get_idx(i, j, stride_trans)] = u_ij_np1;
+
+                u_ijp1_squiggle = u_ij_squiggle;
+
+                j -= 1;
             }
         }
 
         max_residuals.push(res_max);
-
-        if max_residuals.len() == 100 {
-            break
-        }
 
         if res_max >= RES_MAX  { //continue iteration
             mem::swap(&mut mat_n, &mut mat_np1); // swap mat_n and mat_np1
@@ -142,7 +137,7 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
     if even_swap_count {
         transpose_back(matrix, mat_n, rows, columns);
     } else {
-        transpose_back(matrix, mat_n, rows, columns);
+        transpose_back(matrix, mat_np1, rows, columns);
     }
 
     max_residuals
