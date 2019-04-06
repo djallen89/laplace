@@ -3,8 +3,33 @@ use super::get_idx;
 use super::residual;
 use super::update;
 use super::RES_MAX;
+use super::NumerMethod;
 
-pub fn jacobi(matrix: &mut Vec<f64>, rows: usize, columns: usize, dx: f64, dy: f64) -> Vec<f64> {
+pub fn jacobi(row: usize, column: usize, stride: usize,
+              dx_sq: f64, dy_sq: f64,
+              mat_n: &mut [f64], mat_np1: &mut [f64], res_max: &mut f64) {
+    
+    let u_ij = mat_n[get_idx(row, column, stride)];
+    
+    let u_ip1j = mat_n[get_idx(row, column + 1, stride)];
+    let u_im1j = mat_n[get_idx(row, column - 1, stride)];
+
+    let u_ijp1 = mat_n[get_idx(row + 1, column, stride)];
+    let u_ijm1 = mat_n[get_idx(row - 1, column, stride)];
+
+    let res_n = residual(u_ij, u_ip1j, u_im1j, u_ijp1, u_ijm1,
+                         dx_sq, dy_sq, 0.0);
+
+    if res_n.abs() >= *res_max {
+        *res_max = res_n.abs();
+    }
+    
+    let u_ij_np1 = update(u_ip1j, u_im1j, u_ijp1, u_ijm1,
+                          dx_sq, dy_sq);
+    mat_np1[get_idx(row, column, stride)] = u_ij_np1;
+}
+
+pub fn _jacobi(matrix: &mut Vec<f64>, rows: usize, columns: usize, dx: f64, dy: f64) -> Vec<f64> {
     let mut mat_new = matrix.clone(); // copy data of original
     let mut mat_n = matrix; // copy the pointer; 
     let mut mat_np1 = &mut mat_new;
