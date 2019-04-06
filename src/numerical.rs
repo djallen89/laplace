@@ -8,8 +8,11 @@ pub type NumerMethod = fn(usize, usize, usize, // row, column, stride
                           f64, f64, // dx_sq, dy_sq
                           &mut [f64], &mut [f64], &mut f64); //mat_n, mat_np1, max_res
 
-pub fn numerical(matrix: &mut Vec<f64>, rows: usize, columns: usize,
-                 dx: f64, dy: f64, method: NumerMethod) -> Vec<f64> {
+pub fn numerical<F>(matrix: &mut Vec<f64>, rows: usize, columns: usize,
+                    dx: f64, dy: f64, method: F) -> Vec<f64>
+where F: Fn(usize, usize, usize, // row, column, stride
+            f64, f64, // dx_sq, dy_sq
+            &mut [f64], &mut [f64], &mut f64) { //mat_n, mat_np1, max_res
     
     let mut mat_new = matrix.clone(); // copy data of original
     let mut mat_n = matrix; // copy the pointer; 

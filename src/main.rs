@@ -119,8 +119,12 @@ fn do_func(rows: usize, columns: usize,
     write_vector(&n_arr, 1.0, "n", "Res", &n_name);
 }
 
-fn do_method(rows: usize, columns: usize,
-             method: NumerMethod, name: &str) {
+fn do_method<F>(rows: usize, columns: usize,
+                method: F, name: &str)
+    where F: Fn(usize, usize, usize, // row, column, stride
+            f64, f64, // dx_sq, dy_sq
+            &mut [f64], &mut [f64], &mut f64) { //mat_n, mat_np1, max_res
+
 
     let mut matrix = create_phi_matrix(rows, columns);
 
