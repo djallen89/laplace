@@ -1,7 +1,5 @@
 use std::mem;
-use super::get_idx;
-use super::residual;
-use super::update;
+use super::{get_idx, residual, update};
 use super::RES_MAX;
 
 pub fn gauss_seidel(matrix: &mut Vec<f64>, rows: usize, columns: usize,

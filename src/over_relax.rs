@@ -1,10 +1,8 @@
 use std::mem;
-use super::get_idx;
-use super::residual;
-use super::update;
-use super::RES_MAX;
+use super::{get_idx, residual, update};
+use super::{RES_MAX, OMEGA};
 
-const OMEGA: f64 = 1.8;
+pub const OMEGA: f64 = 1.8;
 
 pub fn over_relax(matrix: &mut Vec<f64>, rows: usize, columns: usize,
                   dx: f64, dy: f64) -> Vec<f64> {

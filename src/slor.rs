@@ -1,8 +1,10 @@
-use std::mem; // mem is memory
+use std::mem;
 use super::{get_idx, residual, update};
-use super::RES_MAX;
+use super::{RES_MAX, OMEGA};
 
-pub fn jacobi(matrix: &mut Vec<f64>, rows: usize, columns: usize, dx: f64, dy: f64) -> Vec<f64> {
+pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
+                  dx: f64, dy: f64) -> Vec<f64> {
+
     let mut mat_new = matrix.clone(); // copy data of original
     let mut mat_n = matrix; // copy the pointer; 
     let mut mat_np1 = &mut mat_new;
@@ -20,23 +22,28 @@ pub fn jacobi(matrix: &mut Vec<f64>, rows: usize, columns: usize, dx: f64, dy: f
         
         for row in 1 .. rows - 1 {
             for column in 1 .. columns - 1 {
-                let u_ij = mat_n[get_idx(row, column, stride)];
+                let u_ij_n = mat_n[get_idx(row, column, stride)];
                 
-                let u_ip1j = mat_n[get_idx(row, column + 1, stride)];
-                let u_im1j = mat_n[get_idx(row, column - 1, stride)];
+                let u_ip1j_n = mat_n[get_idx(row, column + 1, stride)];
+                let u_im1j_n = mat_n[get_idx(row, column - 1, stride)];
+                let u_im1j_np1 = mat_np1[get_idx(row, column - 1, stride)];
 
-                let u_ijp1 = mat_n[get_idx(row + 1, column, stride)];
-                let u_ijm1 = mat_n[get_idx(row - 1, column, stride)];
+                let u_ijp1_n = mat_n[get_idx(row + 1, column, stride)];
+                let u_ijm1_n = mat_n[get_idx(row - 1, column, stride)];
+                let u_ijm1_np1 = mat_np1[get_idx(row - 1, column, stride)];
 
-                let res_n = residual(u_ij, u_ip1j, u_im1j, u_ijp1, u_ijm1,
+                let res_n = residual(u_ij_n, u_ip1j_n, u_im1j_n, u_ijp1_n, u_ijm1_n,
                                    dx_sq, dy_sq, 0.0);
 
                 if res_n.abs() >= res_max {
-                    res_max = res_n;
+                    res_max = res_n.abs();
                 }
-                
-                let u_ij_np1 = update(u_ip1j, u_im1j, u_ijp1, u_ijm1,
-                                      dx_sq, dy_sq);
+
+                let u_ij_squiggle = update(u_ip1j_n, u_im1j_np1, u_ijp1_n, u_ijm1_np1,
+                                           dx_sq, dy_sq);
+
+                let u_ij_np1 = u_ij_n + OMEGA * (u_ij_squiggle - u_ij_n);
+
                 mat_np1[get_idx(row, column, stride)] = u_ij_np1;
             }
         }
@@ -47,7 +54,9 @@ pub fn jacobi(matrix: &mut Vec<f64>, rows: usize, columns: usize, dx: f64, dy: f
             mem::swap(&mut mat_n, &mut mat_np1); // swap mat_n and mat_np1
             even_swap_count = !even_swap_count;
         } else {
-            break // finish iteration.
+            if max_residuals.len() > 100 {
+                break // finish iteration.
+            }
         }
     }
 
