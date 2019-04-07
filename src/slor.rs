@@ -73,14 +73,11 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
 
     loop {
         let mut res_max = 0.0f64;
-        //let mut u_squiggle: Vec<f64> = (0 .. rows).map(|_| 0.0 as f64).collect();
-        //u_squiggle[0] = bc1;
-        //u_squiggle[rows - 1] = bc2;
 
         for i in 1 .. columns - 1 {
             /* Calculate s_prime and calculate maximum residual */
             for j in 1 .. rows - 1 {
-                let u_ij = mat_n[get_idx(i, j, stride_trans)];
+                let u_ij = mat_n[get_idx(i, j, stride_trans)]; 
 
                 let u_im1j_n = mat_n[get_idx(i - 1, j, stride_trans)];
                 let u_im1j_np1 = mat_np1[get_idx(i - 1, j, stride_trans)];
@@ -100,27 +97,15 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
 
                 let numerator = sj - pj * s_prime[j - 1];
                 let denominator = qj - pj * r_prime[j - 1];
-                s_prime[j] = (numerator / denominator);
+                s_prime[j] = numerator / denominator;
             }
 
-            let mut j = rows - 2;
-            let u_ij_squiggle = s_prime[j] - r_prime[j] * bc2;
-            let u_ij_n = mat_n[get_idx(i, j, stride_trans)];
-            let u_ij_np1 = u_ij_n + OMEGA * (u_ij_squiggle - u_ij_n);
-            mat_np1[get_idx(i, j, stride_trans)] = u_ij_np1;
+            let mut u_ijp1_squiggle = bc2;
+            for j in (1 .. rows - 1).rev() {
 
-            let mut u_ijp1_squiggle = u_ij_squiggle;
-            j -= 1;
-            
-            while j > 0 {
-                let u_ij_squiggle = s_prime[j] - r_prime[j] * u_ijp1_squiggle;
-                let u_ij_n = mat_n[get_idx(i, j, stride_trans)];
-                let u_ij_np1 = u_ij_n + OMEGA * (u_ij_squiggle - u_ij_n);
-                mat_np1[get_idx(i, j, stride_trans)] = u_ij_np1;
-
-                u_ijp1_squiggle = u_ij_squiggle;
-
-                j -= 1;
+                u_ijp1_squiggle = update(mat_n, mat_np1,
+                                         &s_prime, &r_prime, u_ijp1_squiggle,
+                                         i, j, stride_trans);
             }
         }
 
@@ -141,6 +126,18 @@ pub fn slor(matrix: &mut Vec<f64>, rows: usize, columns: usize,
     }
 
     max_residuals
+}
+
+fn update(mat_n: &mut [f64], mat_np1: &mut [f64],
+          s_prime: &[f64], r_prime: &[f64], u_ijp1_squiggle: f64,
+          i: usize, j: usize, stride: usize) -> f64 {
+
+    let u_ij_squiggle = s_prime[j] - r_prime[j] * u_ijp1_squiggle;
+    let u_ij_n = mat_n[get_idx(i, j, stride)];
+    let u_ij_np1 = u_ij_n + OMEGA * (u_ij_squiggle - u_ij_n);
+    mat_np1[get_idx(i, j, stride)] = u_ij_np1;
+
+    u_ij_squiggle
 }
 
 fn transpose_back(mat_orig: &mut [f64], mat_trans: &mut [f64],
